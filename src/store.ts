@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { ref, onValue, set, update, get, child } from 'firebase/database';
+import { ref, onValue, set, update, get } from 'firebase/database';
 import { db } from './firebase';
-import { GameStore, Card, Player } from './types';
+import { GameStore, Card } from './types';
 
 const INITIAL_STATE = {
   id: '',
@@ -48,7 +48,7 @@ export const useGameStore = create<GameStore>((setStore, getStore) => ({
       deck: generateDeck(),
       turnIndex: 0,
       scores: { [playerId]: 0 },
-      status: 'waiting',
+      status: 'waiting' as const,
     };
 
     await set(ref(db, `games/${gameId}`), newGame);
