@@ -17,6 +17,8 @@ export interface GameState {
   turnIndex: number;
   scores: Record<string, number>;
   status: 'waiting' | 'playing' | 'finished';
+  theme: string;
+  pairsCount: number;
 }
 
 export interface GameStore extends GameState {
@@ -24,7 +26,7 @@ export interface GameStore extends GameState {
   playerName: string | null;
   setPlayerInfo: (id: string, name: string) => void;
   joinGame: (gameId: string, playerName: string) => Promise<void>;
-  createGame: (playerName: string) => Promise<string>;
+  createGame: (playerName: string, theme: string, pairsCount: number) => Promise<string>;
   startGame: () => Promise<void>;
   flipCard: (cardIndex: number) => Promise<void>;
   resetGame: () => Promise<void>;

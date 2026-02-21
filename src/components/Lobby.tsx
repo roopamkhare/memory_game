@@ -4,11 +4,13 @@ import { useGameStore } from '../store';
 export function Lobby() {
   const [playerName, setPlayerName] = useState('');
   const [gameIdInput, setGameIdInput] = useState('');
-  const { createGame, joinGame, startGame, status, id, players, playerId } = useGameStore();
+  const [theme, setTheme] = useState('disney');
+  const [pairsCount, setPairsCount] = useState(8);
+  const { createGame, joinGame, startGame, status, id, players, playerId, theme: gameTheme, pairsCount: gamePairsCount } = useGameStore();
 
   const handleCreate = async () => {
     if (!playerName) return alert('Enter a name');
-    await createGame(playerName);
+    await createGame(playerName, theme, pairsCount);
   };
 
   const handleJoin = async () => {
@@ -26,7 +28,8 @@ export function Lobby() {
 
     return (
       <div className="lobby">
-        <h2>Game ID: {id}</h2>
+        <h2>Game ID: <strong>{id}</strong></h2>
+        <p>Theme: <strong>{gameTheme === 'disney' ? '🏰 Disney' : '⚡ Avengers'}</strong> &nbsp;|&nbsp; {gamePairsCount * 2} Cards</p>
         <p>Waiting for players... ({players.length}/4)</p>
         <ul>
           {players.map((p) => (
@@ -58,7 +61,27 @@ export function Lobby() {
         onChange={(e) => setPlayerName(e.target.value)}
       />
       <div className="actions">
-        <button onClick={handleCreate}>Create New Game</button>
+        <div className="create-section">
+          <div className="settings">
+            <label>
+              Theme:
+              <select value={theme} onChange={(e) => setTheme(e.target.value)}>
+                <option value="disney">Disney</option>
+                <option value="avengers">Avengers</option>
+              </select>
+            </label>
+            <label>
+              Pairs:
+              <select value={pairsCount} onChange={(e) => setPairsCount(Number(e.target.value))}>
+                <option value={6}>6 (12 cards)</option>
+                <option value={8}>8 (16 cards)</option>
+                <option value={10}>10 (20 cards)</option>
+                <option value={12}>12 (24 cards)</option>
+              </select>
+            </label>
+          </div>
+          <button onClick={handleCreate}>Create New Game</button>
+        </div>
         <div className="join-section">
           <input
             type="text"

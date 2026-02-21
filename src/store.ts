@@ -10,16 +10,24 @@ const INITIAL_STATE = {
   turnIndex: 0,
   scores: {},
   status: 'waiting' as const,
+  theme: 'disney',
+  pairsCount: 8,
   playerId: null,
   playerName: null,
 };
 
+const THEMES = {
+  disney: ['Mickey', 'Minnie', 'Donald', 'Goofy', 'Pluto', 'Elsa', 'Anna', 'Olaf', 'Simba', 'Ariel', 'Mulan', 'Belle', 'Cinderella', 'Jasmine', 'Aladdin', 'Genie', 'Stitch', 'Woody', 'Buzz', 'Moana'],
+  avengers: ['Iron Man', 'Cap America', 'Thor', 'Hulk', 'Black Widow', 'Hawkeye', 'Spider-Man', 'Black Panther', 'Dr Strange', 'Ant-Man', 'Cap Marvel', 'Scarlet Witch', 'Vision', 'Falcon', 'Winter Soldier', 'Star-Lord', 'Groot', 'Gamora', 'Rocket', 'Drax']
+};
+
 // Helper to generate a random deck
-const generateDeck = (): Card[] => {
-  const pairs = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']; // 8 pairs = 16 cards
+const generateDeck = (theme: string, pairsCount: number): Card[] => {
+  const characters = THEMES[theme as keyof typeof THEMES] || THEMES.disney;
+  const selectedPairs = characters.slice(0, pairsCount);
   const deck: Card[] = [];
   
-  pairs.forEach((pairId) => {
+  selectedPairs.forEach((pairId) => {
     deck.push({ id: `${pairId}-1`, pairId, flipped: false, matched: false });
     deck.push({ id: `${pairId}-2`, pairId, flipped: false, matched: false });
   });
@@ -38,17 +46,19 @@ export const useGameStore = create<GameStore>((setStore, getStore) => ({
 
   setPlayerInfo: (id, name) => setStore({ playerId: id, playerName: name }),
 
-  createGame: async (playerName) => {
+  createGame: async (playerName, theme, pairsCount) => {
     const gameId = Math.random().toString(36).substring(2, 8).toUpperCase();
     const playerId = Math.random().toString(36).substring(2, 10);
     
     const newGame = {
       id: gameId,
       players: [{ id: playerId, name: playerName }],
-      deck: generateDeck(),
+      deck: generateDeck(theme, pairsCount),
       turnIndex: 0,
       scores: { [playerId]: 0 },
       status: 'waiting' as const,
+      theme,
+      pairsCount,
     };
 
     await set(ref(db, `games/${gameId}`), newGame);
@@ -165,7 +175,7 @@ export const useGameStore = create<GameStore>((setStore, getStore) => ({
     if (!state.id) return;
 
     const updates = {
-      deck: generateDeck(),
+      deck: generateDeck(state.theme, state.pairsCount),
       turnIndex: 0,
       status: 'playing',
       scores: Object.keys(state.scores).reduce((acc, playerId) => {
