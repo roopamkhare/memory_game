@@ -1,22 +1,20 @@
 #root {
-  max-width: 1280px;
+  width: min(100%, 1120px);
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.1rem;
   text-align: center;
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  display: block;
   min-width: 320px;
   min-height: 100vh;
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  background-color: #242424;
-  color: rgba(255, 255, 255, 0.87);
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-family: "Trebuchet MS", "Avenir Next", "Gill Sans", "Segoe UI", sans-serif;
+  background:
+    radial-gradient(ellipse at 12% 10%, #bde0fe 0%, transparent 40%),
+    radial-gradient(ellipse at 88% 8%, #ffd6a5 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 90%, #caffbf 0%, transparent 45%),
+    linear-gradient(160deg, #eff8ff 0%, #f5f0ff 50%, #eef7f0 100%);
+  color: #15335f;
 }

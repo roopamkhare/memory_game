@@ -9,7 +9,10 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1>Memory Game (3-Player)</h1>
+      <header className="app-header">
+        <h1>Memory Match Party</h1>
+        <p className="app-subtitle">Flip cards, chain combos, and outlast your friends.</p>
+      </header>
       {status === 'waiting' ? (
         <Lobby />
       ) : (
