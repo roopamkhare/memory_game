@@ -46,4 +46,5 @@ export interface GameStore extends GameState {
   flipCard: (cardIndex: number) => Promise<void>;
   skipTurn: () => Promise<void>;
   resetGame: () => Promise<void>;
+  leaveGame: () => void;
 }

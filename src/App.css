@@ -1,3 +1,556 @@
+/* ─── Game topbar (back button) ───────────────────────────── */
+.game-topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.back-btn {
+  padding: 0.4rem 0.9rem;
+  border: 1.5px solid #98b7d5;
+  border-radius: 999px;
+  background: #f4f9ff;
+  color: #24476a;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 150ms, border-color 150ms;
+}
+
+.back-btn:hover {
+  background: #e2edf8;
+  border-color: #6aaad4;
+}
+
+.game-topbar-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #15335f;
+}
+
+/* ─── Game Hub ────────────────────────────────────────────── */
+.hub {
+  width: 100%;
+}
+
+.hub-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.hub-title {
+  margin: 0;
+  font-size: 1.35rem;
+  color: #15335f;
+}
+
+.hub-subtitle {
+  margin: 0.3rem 0 0;
+  font-size: 0.88rem;
+  color: #4a7698;
+}
+
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.1rem;
+}
+
+.hub-card {
+  display: flex;
+  flex-direction: column;
+  border: none;
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(20, 33, 61, 0.1);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  text-align: left;
+  padding: 0;
+}
+
+.hub-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(20, 33, 61, 0.18);
+}
+
+.hub-card-thumb {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.hub-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hub-card-badge {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.hub-card-body {
+  padding: 0.9rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.hub-card-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.hub-card-name {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #15335f;
+}
+
+.hub-card-players {
+  font-size: 0.72rem;
+  color: #6a8daa;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.hub-card-tagline {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #2a9d8f;
+}
+
+.hub-card-desc {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #5a7a96;
+  line-height: 1.4;
+}
+
+.hub-play-btn {
+  margin-top: 0.5rem;
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #15335f;
+  opacity: 0.55;
+  transition: opacity 150ms;
+}
+
+.hub-card:hover .hub-play-btn {
+  opacity: 1;
+  color: #2a9d8f;
+}
+
+/* ─── Snake & Ladders ─────────────────────────────────────── */
+.snake-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.snake-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.snake-players {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.snake-player-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: #f4f9ff;
+  font-size: 0.8rem;
+  transition: transform 200ms;
+}
+
+.snake-player-chip.active {
+  transform: scale(1.08);
+  background: #eef7ff;
+}
+
+.snake-chip-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.snake-chip-name {
+  font-weight: 700;
+}
+
+.snake-chip-pos {
+  font-size: 0.72rem;
+  opacity: 0.65;
+}
+
+.snake-roll-area {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.snake-dice {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.snake-roll-btn {
+  padding: 0.5rem 1.1rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2a9d8f, #227c9d);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.snake-roll-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(34, 124, 157, 0.3);
+}
+
+.snake-waiting {
+  font-size: 0.85rem;
+  color: #6a8daa;
+  font-weight: 600;
+}
+
+.snake-event {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #24476a;
+  background: #eef7ff;
+  border: 1px solid #c8e0f4;
+  border-radius: 10px;
+  padding: 0.4rem 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* The 10x10 board */
+.snake-board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 2px;
+  width: 100%;
+  max-width: 520px;
+  border: 2px solid #c8d8ea;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #c8d8ea;
+}
+
+.snake-cell {
+  aspect-ratio: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.4rem, 1.2vw, 0.65rem);
+  padding: 1px;
+  min-height: 0;
+}
+
+.snake-cell-even   { background: #eef5ff; }
+.snake-cell-odd    { background: #ddeeff; }
+.snake-cell-snake  { background: #ffeaea; }
+.snake-cell-ladder { background: #eafff2; }
+.snake-cell-start  { background: #fffbe6; }
+.snake-cell-end    { background: #fff3e0; }
+
+.snake-sq-num {
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  font-size: clamp(0.38rem, 1vw, 0.58rem);
+  color: #8faac5;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.snake-indicator {
+  font-size: clamp(0.6rem, 1.6vw, 1rem);
+  line-height: 1;
+}
+
+.snake-tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.snake-token {
+  width: clamp(10px, 2vw, 16px);
+  height: clamp(10px, 2vw, 16px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: clamp(0.38rem, 0.9vw, 0.55rem);
+  font-weight: 800;
+  border: 1px solid rgba(255,255,255,0.7);
+  flex-shrink: 0;
+}
+
+.snake-legend {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: #6a8daa;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ─── Pig dice game ───────────────────────────────────────── */
+.pig-board {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  width: 100%;
+}
+
+.pig-scores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.pig-player-card {
+  padding: 0.75rem;
+  border-radius: 14px;
+  background: #f4f9ff;
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  transition: border-color 250ms, transform 250ms;
+}
+
+.pig-player-card.active {
+  transform: scale(1.04);
+  background: #eef7ff;
+}
+
+.pig-player-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.pig-banked {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #15335f;
+  line-height: 1;
+}
+
+.pig-bank-track {
+  height: 6px;
+  background: #d4e6f8;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pig-bank-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 400ms ease;
+}
+
+.pig-bank-goal {
+  font-size: 0.72rem;
+  color: #6a8daa;
+  font-weight: 600;
+}
+
+.pig-dice-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.25rem 2rem;
+  border-radius: 20px;
+  background: #f4f9ff;
+  border: 1.5px solid #d4e6f8;
+  min-width: 240px;
+}
+
+.pig-turn-label {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.pig-dice-display {
+  line-height: 1;
+}
+
+.pig-dice {
+  font-size: 4rem;
+  display: block;
+  transition: transform 200ms;
+}
+
+.pig-dice-idle {
+  opacity: 0.4;
+}
+
+.pig-dice-pig {
+  animation: pigShake 0.4s ease;
+}
+
+@keyframes pigShake {
+  0%, 100% { transform: rotate(0deg); }
+  25%       { transform: rotate(-12deg); }
+  75%       { transform: rotate(12deg); }
+}
+
+.pig-oops {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #e63946;
+  animation: comboPop 0.3s ease;
+}
+
+.pig-turn-score {
+  font-size: 1rem;
+  color: #24476a;
+}
+
+.pig-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.pig-roll-btn {
+  padding: 0.65rem 1.4rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2a9d8f, #227c9d);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.pig-roll-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(34, 124, 157, 0.3);
+}
+
+.pig-hold-btn {
+  padding: 0.65rem 1.4rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #3ca55c, #2a9d8f);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.pig-hold-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(60, 165, 92, 0.3);
+}
+
+.pig-hold-btn:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.pig-game-over {
+  position: relative;
+  padding: 1.5rem;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #15335f, #1f6f8b);
+  color: #fff;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.pig-go-emoji {
+  margin: 0;
+  font-size: 2.5rem;
+  animation: bounce 0.6s ease infinite alternate;
+}
+
+/* ─── Responsive additions ────────────────────────────────── */
+@media (max-width: 760px) {
+  .hub-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .snake-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pig-scores {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .hub-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pig-scores {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 /* ─── Layout ──────────────────────────────────────────────── */
 .app-container {
   max-width: 1080px;

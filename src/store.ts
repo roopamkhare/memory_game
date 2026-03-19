@@ -254,6 +254,12 @@ export const useGameStore = create<GameStore>((setStore, getStore) => ({
     });
   },
 
+  leaveGame: () => {
+    if (unsubscribeGame) { unsubscribeGame(); unsubscribeGame = null; }
+    if (flipBackTimeout) { clearTimeout(flipBackTimeout); flipBackTimeout = null; }
+    setStore({ ...INITIAL_STATE });
+  },
+
   resetGame: async () => {
     const state = getStore();
     if (!state.id) return;
