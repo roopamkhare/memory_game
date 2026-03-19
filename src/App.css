@@ -348,6 +348,188 @@
   justify-content: center;
 }
 
+/* ─── Pig setup ───────────────────────────────────────────── */
+.pig-setup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.pig-setup-header {
+  text-align: center;
+}
+
+.pig-setup-desc {
+  margin: 0;
+  color: #356088;
+  font-size: 0.9rem;
+}
+
+.pig-setup-players {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.pig-setup-player {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background: #f4f9ff;
+  border: 2px solid;
+}
+
+.pig-setup-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 900;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.pig-setup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+}
+
+.pig-setup-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pig-setup-input {
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  border: 1.5px solid #98b7d5;
+  font-size: 0.95rem;
+  background: #fff;
+  color: #183153;
+  transition: border-color 150ms;
+}
+
+.pig-setup-input:focus {
+  outline: none;
+  border-color: #2a9d8f;
+}
+
+.pig-start-btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #e63946, #fb8b24);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.pig-start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(230, 57, 70, 0.35);
+}
+
+/* ─── Pig handoff screen ──────────────────────────────────── */
+.pig-handoff {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem 1.5rem;
+  border-radius: 20px;
+  background: #f4f9ff;
+  border: 2px dashed #d4e6f8;
+  max-width: 360px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.pig-handoff-icon {
+  font-size: 3.5rem;
+  animation: bounce 0.6s ease infinite alternate;
+}
+
+.pig-handoff-title {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.pig-handoff-msg {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #4a7698;
+  font-weight: 600;
+}
+
+.pig-handoff-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.75rem;
+  background: #eef5ff;
+  border-radius: 12px;
+}
+
+.pig-handoff-score-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.pig-handoff-pts {
+  color: #15335f;
+}
+
+.pig-next-btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+  width: 100%;
+}
+
+.pig-next-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+/* ─── Pig final scores ────────────────────────────────────── */
+.pig-final-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0.5rem 0;
+}
+
+.pig-final-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  font-weight: 700;
+  gap: 1.5rem;
+}
+
 /* ─── Pig dice game ───────────────────────────────────────── */
 .pig-board {
   display: flex;
@@ -523,6 +705,232 @@
   margin: 0;
   font-size: 2.5rem;
   animation: bounce 0.6s ease infinite alternate;
+}
+
+/* ─── Tic-Tac-Toe ─────────────────────────────────────────── */
+.ttt-setup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.ttt-setup-desc {
+  margin: 0;
+  color: #356088;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.ttt-setup-players {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.ttt-setup-player {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background: #f8f4ff;
+  border: 2px solid;
+}
+
+.ttt-setup-mark {
+  font-size: 1.8rem;
+  font-weight: 900;
+  width: 42px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.ttt-setup-input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  border: 1.5px solid #c8b0e0;
+  font-size: 0.95rem;
+  background: #fff;
+  color: #183153;
+  transition: border-color 150ms;
+}
+
+.ttt-setup-input:focus {
+  outline: none;
+  border-color: #ab47bc;
+}
+
+.ttt-start-btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #6a0572, #ab47bc);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.ttt-start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(106, 5, 114, 0.35);
+}
+
+.ttt-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+.ttt-scorebar {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.ttt-score-chip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  border: 2.5px solid;
+  background: #f8f8f8;
+  transition: background 200ms, transform 200ms;
+}
+
+.ttt-score-chip.active {
+  transform: scale(1.04);
+}
+
+.ttt-score-mark {
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+
+.ttt-score-name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #15335f;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ttt-score-wins {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.ttt-status {
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.ttt-result {
+  font-size: 1.4rem;
+  font-weight: 900;
+  text-align: center;
+  color: #15335f;
+  animation: comboPop 0.4s ease;
+}
+
+.ttt-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 12px;
+  background: #e8d8f0;
+  border-radius: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ttt-cell {
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 14px;
+  background: #fff;
+  font-size: clamp(2rem, 10vw, 3.5rem);
+  font-weight: 900;
+  cursor: pointer;
+  transition: background 150ms, transform 150ms;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(106, 5, 114, 0.1);
+}
+
+.ttt-cell.ttt-empty:hover {
+  background: #f8f0ff;
+  transform: scale(1.06);
+}
+
+.ttt-cell.ttt-x {
+  color: #e63946;
+}
+
+.ttt-cell.ttt-o {
+  color: #2a9d8f;
+}
+
+.ttt-cell.ttt-win {
+  background: #fff3d0;
+  animation: matchPulse 0.5s ease;
+  box-shadow: 0 4px 16px rgba(255, 200, 0, 0.4);
+}
+
+.ttt-actions {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.ttt-again-btn {
+  flex: 2;
+  padding: 0.7rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #6a0572, #ab47bc);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.ttt-again-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(106, 5, 114, 0.3);
+}
+
+.ttt-reset-btn {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border: 2px solid #c8b0e0;
+  border-radius: 999px;
+  background: #fff;
+  color: #6a0572;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms;
+}
+
+.ttt-reset-btn:hover {
+  background: #f8f0ff;
 }
 
 /* ─── Responsive additions ────────────────────────────────── */

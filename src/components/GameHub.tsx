@@ -1,4 +1,4 @@
-type GameId = 'memory' | 'snake' | 'pig';
+type GameId = 'memory' | 'snake' | 'pig' | 'tictactoe';
 
 interface GameInfo {
   id: GameId;
@@ -40,11 +40,22 @@ const GAMES: GameInfo[] = [
     name: 'Pig',
     tagline: 'Roll. Risk. Bank!',
     description: 'Keep rolling to pile up points — but roll a 1 and you lose it all. First to 100 wins.',
-    players: '2–4 players',
+    players: '2 players',
     emoji: '🐷',
     badge: 'Press your luck',
     colors: ['#9a031e', '#fb8b24'],
     accentEmojis: ['⚀', '⚃', '⚅'],
+  },
+  {
+    id: 'tictactoe',
+    name: 'Tic-Tac-Toe',
+    tagline: 'X. O. Win!',
+    description: 'Take turns placing X and O on a 3×3 grid. Get three in a row to win!',
+    players: '2 players',
+    emoji: '❌',
+    badge: 'Classic',
+    colors: ['#6a0572', '#ab47bc'],
+    accentEmojis: ['❌', '⭕', '❌'],
   },
 ];
 

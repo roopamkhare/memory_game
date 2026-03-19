@@ -10,9 +10,10 @@ import { useSnakeStore } from './snake/snakeStore';
 import { PigLobby } from './pig/PigLobby';
 import { PigBoard } from './pig/PigBoard';
 import { usePigStore } from './pig/pigStore';
+import { TicTacToeGame } from './tictactoe/TicTacToeGame';
 import './App.css';
 
-type Screen = 'hub' | 'memory' | 'snake' | 'pig';
+type Screen = 'hub' | 'memory' | 'snake' | 'pig' | 'tictactoe';
 
 function MemoryGame({ onBack }: { onBack: () => void }) {
   const { status, leaveGame } = useGameStore();
@@ -56,8 +57,8 @@ function SnakeGame({ onBack }: { onBack: () => void }) {
 }
 
 function PigGame({ onBack }: { onBack: () => void }) {
-  const { status, leaveGame } = usePigStore();
-  const handleBack = () => { leaveGame(); onBack(); };
+  const { status, resetGame } = usePigStore();
+  const handleBack = () => { resetGame(); onBack(); };
 
   return (
     <>
@@ -65,11 +66,19 @@ function PigGame({ onBack }: { onBack: () => void }) {
         <button className="back-btn" onClick={handleBack}>← Games</button>
         <span className="game-topbar-title">Pig</span>
       </div>
-      {status === 'waiting' ? (
-        <PigLobby />
-      ) : (
-        <PigBoard />
-      )}
+      {status === 'setup' ? <PigLobby /> : <PigBoard />}
+    </>
+  );
+}
+
+function TicTacToeScreen({ onBack }: { onBack: () => void }) {
+  return (
+    <>
+      <div className="game-topbar">
+        <button className="back-btn" onClick={onBack}>← Games</button>
+        <span className="game-topbar-title">Tic-Tac-Toe</span>
+      </div>
+      <TicTacToeGame />
     </>
   );
 }
@@ -86,10 +95,11 @@ function App() {
         </header>
       )}
 
-      {screen === 'hub'    && <GameHub onSelect={setScreen} />}
-      {screen === 'memory' && <MemoryGame onBack={() => setScreen('hub')} />}
-      {screen === 'snake'  && <SnakeGame  onBack={() => setScreen('hub')} />}
-      {screen === 'pig'    && <PigGame    onBack={() => setScreen('hub')} />}
+      {screen === 'hub'       && <GameHub onSelect={setScreen} />}
+      {screen === 'memory'    && <MemoryGame    onBack={() => setScreen('hub')} />}
+      {screen === 'snake'     && <SnakeGame     onBack={() => setScreen('hub')} />}
+      {screen === 'pig'       && <PigGame       onBack={() => setScreen('hub')} />}
+      {screen === 'tictactoe' && <TicTacToeScreen onBack={() => setScreen('hub')} />}
     </div>
   );
 }
