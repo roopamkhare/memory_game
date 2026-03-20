@@ -166,98 +166,184 @@
 .snake-layout {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.7rem;
   align-items: center;
 }
 
-.snake-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
+/* Player chips row */
 .snake-players {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
+  width: 100%;
 }
 
 .snake-player-chip {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.3rem 0.6rem;
+  gap: 0.45rem;
+  padding: 0.35rem 0.7rem 0.35rem 0.45rem;
   border-radius: 999px;
-  border: 2px solid transparent;
+  border: 2.5px solid var(--player-color, #ccc);
   background: #f4f9ff;
   font-size: 0.8rem;
-  transition: transform 200ms;
+  transition: transform 200ms, box-shadow 200ms, background 200ms;
+  position: relative;
 }
 
 .snake-player-chip.active {
-  transform: scale(1.08);
-  background: #eef7ff;
+  transform: scale(1.1);
+  background: #fff8ee;
+  box-shadow: 0 0 0 3px var(--player-color, #f4a261),
+              0 4px 14px rgba(0,0,0,0.12);
+}
+
+.snake-player-chip.mine {
+  font-weight: 700;
 }
 
 .snake-chip-avatar {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: 1.3rem;
+  line-height: 1;
   flex-shrink: 0;
+}
+
+.snake-chip-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.2;
 }
 
 .snake-chip-name {
   font-weight: 700;
+  font-size: 0.8rem;
 }
 
 .snake-chip-pos {
-  font-size: 0.72rem;
-  opacity: 0.65;
+  font-size: 0.67rem;
+  opacity: 0.6;
+}
+
+.snake-chip-turn-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--player-color, #f4a261);
+  animation: dot-pulse 0.9s ease-in-out infinite;
+  margin-left: 2px;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.5); opacity: 0.6; }
+}
+
+/* Turn banner */
+.snake-turn-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 1rem;
+  border-radius: 14px;
+  background: #f0f7ff;
+  border: 2px solid #c8dff4;
+  width: 100%;
+  box-sizing: border-box;
+  transition: background 300ms, border-color 300ms, box-shadow 300ms;
+}
+
+.snake-turn-banner.my-turn {
+  background: linear-gradient(135deg, #fff8e6, #fff3cc);
+  border-color: #f4a261;
+  box-shadow: 0 0 18px rgba(244, 162, 97, 0.35);
+}
+
+.snake-turn-animal {
+  font-size: 1.7rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.snake-turn-label {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #4a6a8a;
+}
+
+.my-turn-label {
+  font-size: 1rem;
+  font-weight: 900;
+  color: #d9480f;
+  animation: my-turn-pop 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes my-turn-pop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1);   opacity: 1; }
 }
 
 .snake-roll-area {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.55rem;
+  flex-shrink: 0;
 }
 
+/* Dice */
 .snake-dice {
-  font-size: 2.2rem;
+  font-size: 2.4rem;
   line-height: 1;
+  transition: transform 100ms;
+  display: inline-block;
 }
 
+@keyframes dice-roll {
+  0%   { transform: rotate(0deg)   scale(1);    }
+  20%  { transform: rotate(-25deg) scale(1.25); }
+  40%  { transform: rotate(18deg)  scale(1.15); }
+  60%  { transform: rotate(-12deg) scale(1.3);  }
+  80%  { transform: rotate(8deg)   scale(1.2);  }
+  100% { transform: rotate(0deg)   scale(1);    }
+}
+
+.snake-dice.rolling {
+  animation: dice-roll 0.45s ease-in-out infinite;
+}
+
+/* Roll button */
 .snake-roll-btn {
   padding: 0.5rem 1.1rem;
   border: none;
   border-radius: 999px;
-  background: linear-gradient(135deg, #2a9d8f, #227c9d);
+  background: linear-gradient(135deg, #f4a261, #e76f51);
   color: #fff;
   font-size: 0.95rem;
   font-weight: 800;
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms;
+  animation: roll-btn-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes roll-btn-pulse {
+  0%, 100% { box-shadow: 0 3px 10px rgba(231,111,81,0.3); transform: translateY(0); }
+  50%       { box-shadow: 0 6px 20px rgba(231,111,81,0.55); transform: translateY(-2px); }
 }
 
 .snake-roll-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(34, 124, 157, 0.3);
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: 0 8px 22px rgba(231, 111, 81, 0.45);
+  animation: none;
 }
 
-.snake-waiting {
-  font-size: 0.85rem;
-  color: #6a8daa;
-  font-weight: 600;
+.snake-roll-btn.rolling {
+  animation: none;
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
+/* Event log */
 .snake-event {
   font-size: 0.82rem;
   font-weight: 600;
@@ -270,13 +356,19 @@
   box-sizing: border-box;
 }
 
+/* Board wrapper (relative container for SVG overlay) */
+.snake-board-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+}
+
 /* The 10x10 board */
 .snake-board {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   gap: 2px;
   width: 100%;
-  max-width: 520px;
   border: 2px solid #c8d8ea;
   border-radius: 12px;
   overflow: hidden;
@@ -297,8 +389,8 @@
 
 .snake-cell-even   { background: #eef5ff; }
 .snake-cell-odd    { background: #ddeeff; }
-.snake-cell-snake  { background: #ffeaea; }
-.snake-cell-ladder { background: #eafff2; }
+.snake-cell-snake  { background: #fde8e8; }
+.snake-cell-ladder { background: #e8f9ee; }
 .snake-cell-start  { background: #fffbe6; }
 .snake-cell-end    { background: #fff3e0; }
 
@@ -306,15 +398,31 @@
   position: absolute;
   top: 1px;
   left: 2px;
-  font-size: clamp(0.38rem, 1vw, 0.58rem);
-  color: #8faac5;
+  font-size: clamp(0.35rem, 0.9vw, 0.54rem);
+  color: #9ab0c8;
   line-height: 1;
   font-weight: 700;
 }
 
-.snake-indicator {
-  font-size: clamp(0.6rem, 1.6vw, 1rem);
+.snake-indicator-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
   line-height: 1;
+}
+
+.snake-indicator {
+  font-size: clamp(0.6rem, 1.5vw, 0.95rem);
+  line-height: 1;
+}
+
+.snake-dest-label {
+  font-size: clamp(0.3rem, 0.75vw, 0.46rem);
+  font-weight: 800;
+  color: #555;
+  line-height: 1;
+  letter-spacing: -0.02em;
 }
 
 .snake-tokens {
@@ -322,21 +430,33 @@
   flex-wrap: wrap;
   gap: 1px;
   justify-content: center;
-  margin-top: 1px;
+  position: relative;
+  z-index: 20;
 }
 
 .snake-token {
-  width: clamp(10px, 2vw, 16px);
-  height: clamp(10px, 2vw, 16px);
+  width: clamp(12px, 2.4vw, 20px);
+  height: clamp(12px, 2.4vw, 20px);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
-  font-size: clamp(0.38rem, 0.9vw, 0.55rem);
-  font-weight: 800;
-  border: 1px solid rgba(255,255,255,0.7);
+  font-size: clamp(0.45rem, 1.1vw, 0.72rem);
+  border: 1.5px solid rgba(255,255,255,0.85);
   flex-shrink: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+}
+
+/* SVG overlay for snake/ladder paths */
+.snake-svg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+  border-radius: 12px;
 }
 
 .snake-legend {
@@ -346,6 +466,32 @@
   color: #6a8daa;
   flex-wrap: wrap;
   justify-content: center;
+}
+
+/* Win burst animation */
+.snake-win-burst {
+  position: relative;
+  height: 3rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.snake-burst-emoji {
+  position: absolute;
+  font-size: 1.6rem;
+  animation: burst-fly 1.2s ease-out forwards infinite;
+  animation-delay: calc(var(--burst-i) * 0.18s);
+}
+
+@keyframes burst-fly {
+  0%   { transform: translate(0, 0) scale(0.5); opacity: 1; }
+  100% { transform: translate(
+    calc((var(--burst-i) - 2) * 30px),
+    -50px) scale(1.2);
+    opacity: 0;
+  }
 }
 
 /* ─── Pig setup ───────────────────────────────────────────── */
@@ -939,9 +1085,9 @@
     grid-template-columns: 1fr;
   }
 
-  .snake-topbar {
-    flex-direction: column;
-    align-items: flex-start;
+  .snake-turn-banner {
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   .pig-scores {
