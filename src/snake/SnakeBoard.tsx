@@ -12,87 +12,140 @@ function squareAt(gridRow: number, col: number): number {
     : rowFromBottom * 10 + (9 - col) + 1;
 }
 
-// Convert square number (1-100) to SVG center coordinate (viewBox 0-100)
-function squareToPos(sq: number): { x: number; y: number } {
+// Square number → grid position {gridRow, col}
+function squareToGrid(sq: number): { gridRow: number; col: number } {
   const rowFromBottom = Math.floor((sq - 1) / 10);
   const gridRow = 9 - rowFromBottom;
   const col =
     rowFromBottom % 2 === 0
       ? (sq - 1) % 10
       : 9 - ((sq - 1) % 10);
-  return { x: col * 10 + 5, y: gridRow * 10 + 5 };
+  return { gridRow, col };
 }
 
-function SnakeSvgPath({ from, to }: { from: number; to: number }) {
-  const p1 = squareToPos(from);
-  const p2 = squareToPos(to);
+// Grid position → exact pixel center, given actual board outer pixel dimensions
+function gridToPixel(
+  gridRow: number,
+  col: number,
+  boardW: number,
+  boardH: number,
+): { x: number; y: number } {
+  const border = 2;
+  const gap = 2;
+  const cellW = (boardW - 2 * border - 9 * gap) / 10;
+  const cellH = (boardH - 2 * border - 9 * gap) / 10;
+  return {
+    x: border + col * (cellW + gap) + cellW / 2,
+    y: border + gridRow * (cellH + gap) + cellH / 2,
+  };
+}
+
+function squareToPixel(sq: number, bw: number, bh: number) {
+  const { gridRow, col } = squareToGrid(sq);
+  return gridToPixel(gridRow, col, bw, bh);
+}
+
+// ─── Snake SVG path ──────────────────────────────────────────────────────────
+// Proper S-curve: control points on opposite sides of the path (perpendicular)
+function SnakeSvgPath({
+  from, to, bw, bh,
+}: { from: number; to: number; bw: number; bh: number }) {
+  const p1 = squareToPixel(from, bw, bh);
+  const p2 = squareToPixel(to, bw, bh);
   const dx = p2.x - p1.x;
   const dy = p2.y - p1.y;
-  // S-curve control points for a wiggly snake look
-  const cx1 = p1.x + dy * 0.4 - dx * 0.1;
-  const cy1 = p1.y - dx * 0.4 - dy * 0.1;
-  const cx2 = p2.x + dy * 0.4 + dx * 0.1;
-  const cy2 = p2.y - dx * 0.4 + dy * 0.1;
+  // Perpendicular offsets on opposite sides → true S-curve
+  const k = 0.28;
+  const cx1 = p1.x - dy * k;
+  const cy1 = p1.y + dx * k;
+  const cx2 = p2.x + dy * k;
+  const cy2 = p2.y - dx * k;
+  const d = `M ${p1.x} ${p1.y} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${p2.x} ${p2.y}`;
+
   return (
     <g>
-      {/* glow shadow */}
-      <path
-        d={`M ${p1.x} ${p1.y} C ${cx1} ${cy1} ${cx2} ${cy2} ${p2.x} ${p2.y}`}
-        fill="none" stroke="rgba(180,0,0,0.2)" strokeWidth="5" strokeLinecap="round"
-      />
-      {/* main snake body */}
-      <path
-        d={`M ${p1.x} ${p1.y} C ${cx1} ${cy1} ${cx2} ${cy2} ${p2.x} ${p2.y}`}
-        fill="none" stroke="rgba(210,40,40,0.82)" strokeWidth="2.4" strokeLinecap="round"
-      />
-      {/* head dot */}
-      <circle cx={p1.x} cy={p1.y} r="2.8" fill="#e63946" />
-      {/* tail dot */}
-      <circle cx={p2.x} cy={p2.y} r="1.6" fill="#e63946" opacity="0.55" />
+      {/* outer glow */}
+      <path d={d} fill="none" stroke="rgba(150,0,0,0.18)" strokeWidth="8" strokeLinecap="round" />
+      {/* body outline */}
+      <path d={d} fill="none" stroke="#7b1010" strokeWidth="5" strokeLinecap="round" />
+      {/* body fill */}
+      <path d={d} fill="none" stroke="#e63946" strokeWidth="3.5" strokeLinecap="round" />
+      {/* scale dashes */}
+      <path d={d} fill="none" stroke="rgba(255,120,120,0.55)"
+        strokeWidth="1.5" strokeLinecap="round" strokeDasharray="5 7" />
+      {/* head */}
+      <circle cx={p1.x} cy={p1.y} r="5" fill="#7b1010" />
+      <circle cx={p1.x} cy={p1.y} r="3.5" fill="#e63946" />
+      {/* eyes */}
+      <circle cx={p1.x - 1.2} cy={p1.y - 1.2} r="0.9" fill="white" />
+      <circle cx={p1.x + 1.2} cy={p1.y - 1.2} r="0.9" fill="white" />
+      {/* tail tip */}
+      <circle cx={p2.x} cy={p2.y} r="2.8" fill="#7b1010" />
+      <circle cx={p2.x} cy={p2.y} r="1.8" fill="#e63946" opacity="0.7" />
     </g>
   );
 }
 
-function LadderSvgPath({ from, to }: { from: number; to: number }) {
-  const p1 = squareToPos(from);
-  const p2 = squareToPos(to);
+// ─── Ladder SVG path ─────────────────────────────────────────────────────────
+function LadderSvgPath({
+  from, to, bw, bh,
+}: { from: number; to: number; bw: number; bh: number }) {
+  const p1 = squareToPixel(from, bw, bh);
+  const p2 = squareToPixel(to, bw, bh);
   const dx = p2.x - p1.x;
   const dy = p2.y - p1.y;
   const len = Math.sqrt(dx * dx + dy * dy);
   if (len === 0) return null;
-  const px = (-dy / len) * 1.5;
-  const py = (dx / len) * 1.5;
-  const rungCount = Math.max(2, Math.floor(len / 8));
+  // perpendicular unit vector, scaled by rail half-width
+  const railHalf = 3;
+  const px = (-dy / len) * railHalf;
+  const py = (dx / len) * railHalf;
+
+  const rungCount = Math.max(2, Math.floor(len / 20));
   const rungs = Array.from({ length: rungCount }, (_, i) => {
     const t = (i + 1) / (rungCount + 1);
     return { rx: p1.x + dx * t, ry: p1.y + dy * t };
   });
+
   return (
     <g>
-      {/* shadow */}
-      <line x1={p1.x + px} y1={p1.y + py} x2={p2.x + px} y2={p2.y + py}
-        stroke="rgba(0,0,0,0.12)" strokeWidth="4" strokeLinecap="round" />
-      <line x1={p1.x - px} y1={p1.y - py} x2={p2.x - px} y2={p2.y - py}
-        stroke="rgba(0,0,0,0.12)" strokeWidth="4" strokeLinecap="round" />
+      {/* rail shadows */}
+      <line x1={p1.x + px + 0.8} y1={p1.y + py + 0.8} x2={p2.x + px + 0.8} y2={p2.y + py + 0.8}
+        stroke="rgba(0,0,0,0.18)" strokeWidth="4.5" strokeLinecap="round" />
+      <line x1={p1.x - px + 0.8} y1={p1.y - py + 0.8} x2={p2.x - px + 0.8} y2={p2.y - py + 0.8}
+        stroke="rgba(0,0,0,0.18)" strokeWidth="4.5" strokeLinecap="round" />
       {/* rails */}
       <line x1={p1.x + px} y1={p1.y + py} x2={p2.x + px} y2={p2.y + py}
-        stroke="rgba(245,158,11,0.88)" strokeWidth="2.2" strokeLinecap="round" />
+        stroke="#92400e" strokeWidth="3.5" strokeLinecap="round" />
       <line x1={p1.x - px} y1={p1.y - py} x2={p2.x - px} y2={p2.y - py}
-        stroke="rgba(245,158,11,0.88)" strokeWidth="2.2" strokeLinecap="round" />
+        stroke="#92400e" strokeWidth="3.5" strokeLinecap="round" />
+      {/* rail highlights */}
+      <line x1={p1.x + px} y1={p1.y + py} x2={p2.x + px} y2={p2.y + py}
+        stroke="rgba(253,186,116,0.6)" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1={p1.x - px} y1={p1.y - py} x2={p2.x - px} y2={p2.y - py}
+        stroke="rgba(253,186,116,0.6)" strokeWidth="1.5" strokeLinecap="round" />
       {/* rungs */}
       {rungs.map((r, i) => (
-        <line key={i}
-          x1={r.rx + px} y1={r.ry + py} x2={r.rx - px} y2={r.ry - py}
-          stroke="rgba(253,211,77,0.9)" strokeWidth="1.6" strokeLinecap="round" />
+        <g key={i}>
+          <line x1={r.rx + px + 0.5} y1={r.ry + py + 0.5} x2={r.rx - px + 0.5} y2={r.ry - py + 0.5}
+            stroke="rgba(0,0,0,0.15)" strokeWidth="3.5" strokeLinecap="round" />
+          <line x1={r.rx + px} y1={r.ry + py} x2={r.rx - px} y2={r.ry - py}
+            stroke="#b45309" strokeWidth="2.5" strokeLinecap="round" />
+          <line x1={r.rx + px} y1={r.ry + py} x2={r.rx - px} y2={r.ry - py}
+            stroke="rgba(253,211,77,0.5)" strokeWidth="1" strokeLinecap="round" />
+        </g>
       ))}
       {/* base dot */}
-      <circle cx={p1.x} cy={p1.y} r="2.2" fill="#f59e0b" />
+      <circle cx={p1.x} cy={p1.y} r="4" fill="#92400e" />
+      <circle cx={p1.x} cy={p1.y} r="2.5" fill="#fbbf24" />
       {/* top dot */}
-      <circle cx={p2.x} cy={p2.y} r="2.2" fill="#2a9d8f" />
+      <circle cx={p2.x} cy={p2.y} r="4" fill="#92400e" />
+      <circle cx={p2.x} cy={p2.y} r="2.5" fill="#34d399" />
     </g>
   );
 }
 
+// ─── Main component ───────────────────────────────────────────────────────────
 export function SnakeBoard() {
   const {
     players, positions, turnIndex, lastRoll, lastEvent,
@@ -104,7 +157,24 @@ export function SnakeBoard() {
   const winner = winnerId ? players.find(p => p.id === winnerId) : null;
   const winnerIndex = winnerId ? players.findIndex(p => p.id === winnerId) : -1;
 
-  // Dice roll animation state
+  // ── Measure the real board pixel dimensions ──────────────────────────────
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [boardDims, setBoardDims] = useState({ w: 520, h: 520 });
+
+  useEffect(() => {
+    const el = boardRef.current;
+    if (!el) return;
+    const update = () => {
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0) setBoardDims({ w: rect.width, h: rect.height });
+    };
+    update();
+    const obs = new ResizeObserver(update);
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // ── Dice roll animation ───────────────────────────────────────────────────
   const [rolling, setRolling] = useState(false);
   const [displayFace, setDisplayFace] = useState(0);
   const rollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -112,7 +182,6 @@ export function SnakeBoard() {
 
   useEffect(() => {
     if (lastRoll !== lastRollRef.current && rolling) {
-      // Firebase result arrived — stop animation shortly after
       setTimeout(() => {
         if (rollInterval.current) clearInterval(rollInterval.current);
         setRolling(false);
@@ -131,7 +200,7 @@ export function SnakeBoard() {
     await rollDice();
   };
 
-  // Build a map: squareNumber → array of player indices on that square
+  // ── Player-on-square map ──────────────────────────────────────────────────
   const playerOnSquare: Record<number, number[]> = {};
   players.forEach((p, i) => {
     const sq = positions[p.id] || 0;
@@ -142,11 +211,9 @@ export function SnakeBoard() {
   });
 
   const cells: { gridRow: number; col: number; square: number }[] = [];
-  for (let r = 0; r < 10; r++) {
-    for (let c = 0; c < 10; c++) {
+  for (let r = 0; r < 10; r++)
+    for (let c = 0; c < 10; c++)
       cells.push({ gridRow: r, col: c, square: squareAt(r, c) });
-    }
-  }
 
   const diceFace = rolling
     ? DICE_FACES[displayFace]
@@ -155,7 +222,7 @@ export function SnakeBoard() {
   return (
     <div className="snake-layout">
 
-      {/* Player chips row */}
+      {/* Player chips */}
       <div className="snake-players">
         {players.map((p, i) => {
           const pos = positions[p.id] || 0;
@@ -189,7 +256,7 @@ export function SnakeBoard() {
           </span>
           <div className="snake-roll-area">
             <span className={`snake-dice${rolling ? ' rolling' : ''}`}>{diceFace}</span>
-            {isMyTurn ? (
+            {isMyTurn && (
               <button
                 className={`snake-roll-btn${rolling ? ' rolling' : ''}`}
                 onClick={handleRoll}
@@ -197,7 +264,7 @@ export function SnakeBoard() {
               >
                 {rolling ? 'Rolling…' : '🎲 Roll!'}
               </button>
-            ) : null}
+            )}
           </div>
         </div>
       )}
@@ -207,7 +274,7 @@ export function SnakeBoard() {
 
       {/* Board + SVG overlay */}
       <div className="snake-board-wrapper">
-        <div className="snake-board">
+        <div className="snake-board" ref={boardRef}>
           {cells.map(({ gridRow, col, square }) => {
             const isSnakeHead = SNAKES[square] !== undefined;
             const isLadderBase = LADDERS[square] !== undefined;
@@ -272,18 +339,25 @@ export function SnakeBoard() {
           })}
         </div>
 
-        {/* SVG overlay — snakes and ladders drawn as paths across the board */}
+        {/* SVG overlay — exact pixel coordinates via ResizeObserver */}
         <svg
           className="snake-svg-overlay"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
+          viewBox={`0 0 ${boardDims.w} ${boardDims.h}`}
           xmlns="http://www.w3.org/2000/svg"
         >
           {Object.entries(LADDERS).map(([from, to]) => (
-            <LadderSvgPath key={`l-${from}`} from={Number(from)} to={to} />
+            <LadderSvgPath
+              key={`l-${from}`}
+              from={Number(from)} to={to}
+              bw={boardDims.w} bh={boardDims.h}
+            />
           ))}
           {Object.entries(SNAKES).map(([from, to]) => (
-            <SnakeSvgPath key={`s-${from}`} from={Number(from)} to={to} />
+            <SnakeSvgPath
+              key={`s-${from}`}
+              from={Number(from)} to={to}
+              bw={boardDims.w} bh={boardDims.h}
+            />
           ))}
         </svg>
       </div>
