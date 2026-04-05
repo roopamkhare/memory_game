@@ -7,13 +7,11 @@ import { Scoreboard } from './components/Scoreboard';
 import { SnakeLobby } from './snake/SnakeLobby';
 import { SnakeBoard } from './snake/SnakeBoard';
 import { useSnakeStore } from './snake/snakeStore';
-import { PigLobby } from './pig/PigLobby';
-import { PigBoard } from './pig/PigBoard';
-import { usePigStore } from './pig/pigStore';
+import { BoggleGame } from './boggle/BoggleGame';
 import { TicTacToeGame } from './tictactoe/TicTacToeGame';
 import './App.css';
 
-type Screen = 'hub' | 'memory' | 'snake' | 'pig' | 'tictactoe';
+type Screen = 'hub' | 'memory' | 'snake' | 'boggle' | 'tictactoe';
 
 function MemoryGame({ onBack }: { onBack: () => void }) {
   const { status, leaveGame } = useGameStore();
@@ -56,17 +54,14 @@ function SnakeGame({ onBack }: { onBack: () => void }) {
   );
 }
 
-function PigGame({ onBack }: { onBack: () => void }) {
-  const { status, resetGame } = usePigStore();
-  const handleBack = () => { resetGame(); onBack(); };
-
+function BoggleScreen({ onBack }: { onBack: () => void }) {
   return (
     <>
       <div className="game-topbar">
-        <button className="back-btn" onClick={handleBack}>← Games</button>
-        <span className="game-topbar-title">Pig</span>
+        <button className="back-btn" onClick={onBack}>← Games</button>
+        <span className="game-topbar-title">Boggle</span>
       </div>
-      {status === 'setup' ? <PigLobby /> : <PigBoard />}
+      <BoggleGame />
     </>
   );
 }
@@ -98,7 +93,7 @@ function App() {
       {screen === 'hub'       && <GameHub onSelect={setScreen} />}
       {screen === 'memory'    && <MemoryGame    onBack={() => setScreen('hub')} />}
       {screen === 'snake'     && <SnakeGame     onBack={() => setScreen('hub')} />}
-      {screen === 'pig'       && <PigGame       onBack={() => setScreen('hub')} />}
+      {screen === 'boggle'    && <BoggleScreen   onBack={() => setScreen('hub')} />}
       {screen === 'tictactoe' && <TicTacToeScreen onBack={() => setScreen('hub')} />}
     </div>
   );

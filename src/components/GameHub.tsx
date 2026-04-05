@@ -1,4 +1,4 @@
-type GameId = 'memory' | 'snake' | 'pig' | 'tictactoe';
+type GameId = 'memory' | 'snake' | 'boggle' | 'tictactoe';
 
 interface GameInfo {
   id: GameId;
@@ -36,15 +36,15 @@ const GAMES: GameInfo[] = [
     accentEmojis: ['🪜', '🎲', '🎲'],
   },
   {
-    id: 'pig',
-    name: 'Pig',
-    tagline: 'Roll. Risk. Bank!',
-    description: 'Keep rolling to pile up points — but roll a 1 and you lose it all. First to 100 wins.',
+    id: 'boggle',
+    name: 'Boggle',
+    tagline: 'Find. Chain. Score!',
+    description: 'Race to find words on a 4×4 letter grid. Chain adjacent tiles — longer words score more!',
     players: '2 players',
-    emoji: '🐷',
-    badge: 'Press your luck',
-    colors: ['#9a031e', '#fb8b24'],
-    accentEmojis: ['⚀', '⚃', '⚅'],
+    emoji: '🔤',
+    badge: 'Word game',
+    colors: ['#1a3a5c', '#4a90d9'],
+    accentEmojis: ['🅰️', '🅱️', '🔤'],
   },
   {
     id: 'tictactoe',
