@@ -44,10 +44,27 @@ export function BoggleGame() {
   const [p2Words, setP2Words] = useState<string[]>([]);
   const [timeLeft, setTimeLeft] = useState(TURN_SECONDS);
   const [flash, setFlash] = useState('');
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const nextPhaseRef = useRef<Phase>('handoff');
+  const gridRef = useRef<HTMLDivElement>(null);
 
-  const currentWord = selected.map(i => grid[i]).join('');
+  // Mirror selected in a ref so pointer-up can read the latest value synchronously
+  const selectedRef = useRef<number[]>([]);
+  const isDragging = useRef(false);
+  const phaseRef = useRef<Phase>('setup');
+  const p1WordsRef = useRef<string[]>([]);
+  const p2WordsRef = useRef<string[]>([]);
+
+  // Keep refs in sync
+  phaseRef.current = phase;
+  p1WordsRef.current = p1Words;
+  p2WordsRef.current = p2Words;
+
+  const updateSelected = (s: number[]) => {
+    selectedRef.current = s;
+    setSelected(s);
+  };
 
   const stopTimer = () => {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
@@ -61,10 +78,7 @@ export function BoggleGame() {
     timerRef.current = setInterval(() => {
       t--;
       setTimeLeft(t);
-      if (t <= 0) {
-        stopTimer();
-        setPhase(nextPhaseRef.current);
-      }
+      if (t <= 0) { stopTimer(); setPhase(nextPhaseRef.current); }
     }, 1000);
   };
 
@@ -75,55 +89,87 @@ export function BoggleGame() {
     setGrid(generateGrid());
     setP1Words([]);
     setP2Words([]);
-    setSelected([]);
+    updateSelected([]);
     setFlash('');
     setPhase('p1turn');
     startTimer('handoff');
   };
 
-  const handleCellClick = (idx: number) => {
-    if (phase !== 'p1turn' && phase !== 'p2turn') return;
+  // Submit using the ref value — safe to call from pointer events
+  const submitWordFromRef = () => {
+    const sel = selectedRef.current;
+    const currentPhase = phaseRef.current;
+    if (currentPhase !== 'p1turn' && currentPhase !== 'p2turn') return;
+    if (sel.length === 0) return;
 
-    if (selected.includes(idx)) {
-      if (idx === selected[selected.length - 1]) {
-        setSelected(s => s.slice(0, -1));
-      } else {
-        setSelected([idx]);
-      }
-      return;
-    }
+    const word = sel.map(i => grid[i]).join('').toLowerCase();
+    const words = currentPhase === 'p1turn' ? p1WordsRef.current : p2WordsRef.current;
+    const setWords = currentPhase === 'p1turn' ? setP1Words : setP2Words;
 
-    if (selected.length === 0) { setSelected([idx]); return; }
-
-    const last = selected[selected.length - 1];
-    if (!isAdjacent(last, idx)) {
-      setFlash('Not adjacent!');
-      setTimeout(() => setFlash(''), 1200);
-      return;
-    }
-    setSelected(s => [...s, idx]);
-  };
-
-  const submitWord = () => {
-    if (phase !== 'p1turn' && phase !== 'p2turn') return;
-    const word = currentWord.toLowerCase();
-    const words = phase === 'p1turn' ? p1Words : p2Words;
-    const setWords = phase === 'p1turn' ? setP1Words : setP2Words;
-
+    let msg = '';
     if (word.length < 3) {
-      setFlash('Too short! (min 3 letters)');
+      msg = 'Too short! (min 3 letters)';
     } else if (words.includes(word)) {
-      setFlash('Already found!');
+      msg = 'Already found!';
     } else {
       setWords(prev => [...prev, word]);
-      setFlash(`✓ +${wordScore(word.length)} pts`);
+      msg = `✓ +${wordScore(word.length)} pts`;
     }
-    setSelected([]);
+    updateSelected([]);
+    setFlash(msg);
     setTimeout(() => setFlash(''), 1200);
   };
 
+  // ── Pointer drag handlers ──────────────────────────────────────
+  const getCellIndex = (clientX: number, clientY: number): number | null => {
+    if (!gridRef.current) return null;
+    const cells = gridRef.current.querySelectorAll<HTMLElement>('.boggle-cell');
+    for (let i = 0; i < cells.length; i++) {
+      const r = cells[i].getBoundingClientRect();
+      if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+        return i;
+      }
+    }
+    return null;
+  };
+
+  const handleGridPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (phaseRef.current !== 'p1turn' && phaseRef.current !== 'p2turn') return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    isDragging.current = true;
+    const idx = getCellIndex(e.clientX, e.clientY);
+    updateSelected(idx !== null ? [idx] : []);
+  };
+
+  const handleGridPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging.current) return;
+    const idx = getCellIndex(e.clientX, e.clientY);
+    if (idx === null) return;
+    const prev = selectedRef.current;
+    if (prev.includes(idx)) {
+      // Dragging back onto second-to-last tile = undo last
+      if (prev.length >= 2 && prev[prev.length - 2] === idx) {
+        updateSelected(prev.slice(0, -1));
+      }
+      return;
+    }
+    if (prev.length > 0 && !isAdjacent(prev[prev.length - 1], idx)) return;
+    updateSelected([...prev, idx]);
+  };
+
+  const handleGridPointerUp = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    submitWordFromRef();
+  };
+
+  const handleGridPointerCancel = () => {
+    isDragging.current = false;
+    updateSelected([]);
+  };
+
   const handleP2Start = () => {
-    setSelected([]);
+    updateSelected([]);
     setFlash('');
     setPhase('p2turn');
     startTimer('results');
@@ -133,7 +179,7 @@ export function BoggleGame() {
     stopTimer();
     setPhase('setup');
     setGrid([]);
-    setSelected([]);
+    updateSelected([]);
     setP1Words([]);
     setP2Words([]);
     setFlash('');
@@ -144,7 +190,7 @@ export function BoggleGame() {
     return (
       <div className="boggle-setup">
         <p className="boggle-setup-desc">
-          Find words on a 4×4 grid — letters must be adjacent (including diagonal).
+          Find words on a 4×4 grid — drag across adjacent letters to build a word, release to submit.
           Each player gets 2 minutes. Shared words don't count!
         </p>
         <div className="boggle-setup-players">
@@ -227,17 +273,13 @@ export function BoggleGame() {
                     }
                   </li>
                 ))}
-                {words.length === 0 && (
-                  <li className="boggle-word-empty">No words found</li>
-                )}
+                {words.length === 0 && <li className="boggle-word-empty">No words found</li>}
               </ul>
             </div>
           ))}
         </div>
         {shared.size > 0 && (
-          <p className="boggle-shared-note">
-            Shared words don't count for either player.
-          </p>
+          <p className="boggle-shared-note">Shared words don't count for either player.</p>
         )}
         <div className="boggle-results-actions">
           <button className="boggle-again-btn" onClick={handleStart}>Play Again</button>
@@ -251,6 +293,7 @@ export function BoggleGame() {
   const isP1 = phase === 'p1turn';
   const currentWords = isP1 ? p1Words : p2Words;
   const playerName = names[isP1 ? 0 : 1];
+  const currentWord = selected.map(i => grid[i]).join('');
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;
   const timerUrgent = timeLeft <= 30;
@@ -265,45 +308,39 @@ export function BoggleGame() {
         </span>
       </div>
 
-      {/* 4×4 grid */}
-      <div className="boggle-grid">
+      {/* 4×4 grid — drag to select, release to submit */}
+      <div
+        ref={gridRef}
+        className="boggle-grid"
+        onPointerDown={handleGridPointerDown}
+        onPointerMove={handleGridPointerMove}
+        onPointerUp={handleGridPointerUp}
+        onPointerCancel={handleGridPointerCancel}
+      >
         {grid.map((letter, i) => {
           const selIdx = selected.indexOf(i);
           const isSelected = selIdx !== -1;
           const isLast = isSelected && selIdx === selected.length - 1;
           return (
-            <button
+            <div
               key={i}
               className={`boggle-cell${isSelected ? ' selected' : ''}${isLast ? ' last' : ''}`}
-              onClick={() => handleCellClick(i)}
             >
               <span className="boggle-letter">{letter === 'Q' ? 'Qu' : letter}</span>
               {isSelected && (
                 <span className="boggle-cell-order">{selIdx + 1}</span>
               )}
-            </button>
+            </div>
           );
         })}
       </div>
 
-      {/* Word builder */}
-      <div className="boggle-builder">
-        <div className="boggle-current-word">
-          {currentWord
-            ? currentWord
-            : <span className="boggle-placeholder">Click tiles to build a word</span>
-          }
-        </div>
-        <div className="boggle-builder-btns">
-          <button className="boggle-clear-btn" onClick={() => setSelected([])}>Clear</button>
-          <button
-            className="boggle-submit-btn"
-            onClick={submitWord}
-            disabled={currentWord.length < 3}
-          >
-            Submit
-          </button>
-        </div>
+      {/* Word display */}
+      <div className="boggle-current-word">
+        {currentWord
+          ? currentWord
+          : <span className="boggle-placeholder">Drag across tiles to build a word</span>
+        }
       </div>
 
       {/* Flash feedback */}
