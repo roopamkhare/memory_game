@@ -1282,7 +1282,16 @@
   color: #2a9d8f;
   text-align: center;
   animation: comboPop 0.25s ease;
+  min-height: 1.4em;
 }
+
+.boggle-flash:empty {
+  visibility: hidden;
+}
+
+.boggle-flash-ok   { color: #2a9d8f; }
+.boggle-flash-err  { color: #e63946; }
+.boggle-flash-info { color: #4a90d9; }
 
 .boggle-found {
   width: 100%;

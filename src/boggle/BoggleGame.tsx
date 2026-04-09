@@ -44,6 +44,7 @@ export function BoggleGame() {
   const [p2Words, setP2Words] = useState<string[]>([]);
   const [timeLeft, setTimeLeft] = useState(TURN_SECONDS);
   const [flash, setFlash] = useState('');
+  const [flashType, setFlashType] = useState<'ok' | 'err' | 'info'>('info');
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const nextPhaseRef = useRef<Phase>('handoff');
@@ -96,28 +97,45 @@ export function BoggleGame() {
   };
 
   // Submit using the ref value — safe to call from pointer events
-  const submitWordFromRef = () => {
+  const submitWordFromRef = async () => {
     const sel = selectedRef.current;
     const currentPhase = phaseRef.current;
     if (currentPhase !== 'p1turn' && currentPhase !== 'p2turn') return;
     if (sel.length === 0) return;
 
     const word = sel.map(i => grid[i]).join('').toLowerCase();
-    const words = currentPhase === 'p1turn' ? p1WordsRef.current : p2WordsRef.current;
-    const setWords = currentPhase === 'p1turn' ? setP1Words : setP2Words;
-
-    let msg = '';
-    if (word.length < 3) {
-      msg = 'Too short! (min 3 letters)';
-    } else if (words.includes(word)) {
-      msg = 'Already found!';
-    } else {
-      setWords(prev => [...prev, word]);
-      msg = `✓ +${wordScore(word.length)} pts`;
-    }
     updateSelected([]);
-    setFlash(msg);
-    setTimeout(() => setFlash(''), 1200);
+
+    if (word.length < 3) {
+      setFlash('Too short! (min 3 letters)'); setFlashType('err');
+      setTimeout(() => setFlash(''), 1200);
+      return;
+    }
+
+    const words = currentPhase === 'p1turn' ? p1WordsRef.current : p2WordsRef.current;
+    if (words.includes(word)) {
+      setFlash('Already found!'); setFlashType('err');
+      setTimeout(() => setFlash(''), 1200);
+      return;
+    }
+
+    setFlash('Checking…'); setFlashType('info');
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      if (res.ok) {
+        const setWords = currentPhase === 'p1turn' ? setP1Words : setP2Words;
+        setWords(prev => [...prev, word]);
+        setFlash(`✓ +${wordScore(word.length)} pts`); setFlashType('ok');
+      } else {
+        setFlash('Not a word!'); setFlashType('err');
+      }
+    } catch {
+      // Network error — accept the word to avoid penalising offline play
+      const setWords = currentPhase === 'p1turn' ? setP1Words : setP2Words;
+      setWords(prev => [...prev, word]);
+      setFlash(`✓ +${wordScore(word.length)} pts`); setFlashType('ok');
+    }
+    setTimeout(() => setFlash(''), 1400);
   };
 
   // ── Pointer drag handlers ──────────────────────────────────────
@@ -160,7 +178,7 @@ export function BoggleGame() {
   const handleGridPointerUp = () => {
     if (!isDragging.current) return;
     isDragging.current = false;
-    submitWordFromRef();
+    void submitWordFromRef();
   };
 
   const handleGridPointerCancel = () => {
@@ -344,7 +362,7 @@ export function BoggleGame() {
       </div>
 
       {/* Flash feedback */}
-      {flash && <div className="boggle-flash">{flash}</div>}
+      {flash && <div className={`boggle-flash boggle-flash-${flashType}`}>{flash}</div>}
 
       {/* Found words */}
       <div className="boggle-found">
