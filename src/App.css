@@ -1146,6 +1146,112 @@
   background: #eef4fb;
 }
 
+/* ── Rivals bar (live word counts) ── */
+.boggle-rivals {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.boggle-rival-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem 0.3rem 0.4rem;
+  border: 2px solid;
+  border-radius: 999px;
+  background: #f4f9ff;
+}
+
+.boggle-rival-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 900;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.boggle-rival-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #15335f;
+}
+
+.boggle-rival-count {
+  font-size: 0.85rem;
+  font-weight: 900;
+  min-width: 1.2ch;
+  text-align: right;
+}
+
+/* ── Leaderboard ── */
+.boggle-leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.boggle-lb-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid;
+  border-radius: 12px;
+  background: #f4f9ff;
+}
+
+.boggle-lb-rank {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #9ab8d8;
+  width: 22px;
+  flex-shrink: 0;
+}
+
+.boggle-lb-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.boggle-lb-name {
+  flex: 1;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #15335f;
+}
+
+.boggle-lb-score {
+  font-weight: 900;
+  font-size: 1rem;
+}
+
+.boggle-lb-count {
+  font-size: 0.78rem;
+  color: #7a9ab8;
+  font-weight: 600;
+}
+
+/* ── Multi-column results (adapts to player count) ── */
+.boggle-results-cols.cols-2 { grid-template-columns: 1fr 1fr; }
+.boggle-results-cols.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.boggle-results-cols.cols-4 { grid-template-columns: 1fr 1fr; }
+
 /* ── Game turn ── */
 .boggle-game {
   display: flex;

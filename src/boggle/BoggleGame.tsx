@@ -1,17 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-
-// Standard Boggle 16 dice (each string = faces of one die)
-const BOGGLE_DICE = [
-  'AAEEGN', 'ELRTTY', 'AOOTTW', 'ABBJOO',
-  'EHRTVW', 'CIMOTU', 'DISTTY', 'EIOSST',
-  'DELRVY', 'ACHOPS', 'HIMNQU', 'EEINSU',
-  'EEGHNW', 'AFFKPS', 'HLNNRZ', 'DEILRX',
-];
-
-function generateGrid(): string[] {
-  const shuffled = [...BOGGLE_DICE].sort(() => Math.random() - 0.5);
-  return shuffled.map(die => die[Math.floor(Math.random() * die.length)]);
-}
+import { useBoggleStore, BOGGLE_COLORS, BOGGLE_DURATION } from './boggleStore';
 
 function isAdjacent(a: number, b: number): boolean {
   const ar = Math.floor(a / 4), ac = a % 4;
@@ -28,115 +16,55 @@ function wordScore(len: number): number {
   return 11;
 }
 
+function wordsFromFirebase(raw: Record<string, true> | undefined): string[] {
+  return raw ? Object.keys(raw) : [];
+}
+
 function totalScore(words: string[], shared: Set<string>): number {
   return words.filter(w => !shared.has(w)).reduce((s, w) => s + wordScore(w.length), 0);
 }
 
-const TURN_SECONDS = 120;
-type Phase = 'setup' | 'p1turn' | 'handoff' | 'p2turn' | 'results';
-
 export function BoggleGame() {
-  const [names, setNames] = useState(['', '']);
-  const [phase, setPhase] = useState<Phase>('setup');
-  const [grid, setGrid] = useState<string[]>([]);
+  const {
+    status, players, grid, timeStart, words,
+    playerId, submitWord, finishGame, playAgain, leaveGame,
+  } = useBoggleStore();
+
   const [selected, setSelected] = useState<number[]>([]);
-  const [p1Words, setP1Words] = useState<string[]>([]);
-  const [p2Words, setP2Words] = useState<string[]>([]);
-  const [timeLeft, setTimeLeft] = useState(TURN_SECONDS);
   const [flash, setFlash] = useState('');
   const [flashType, setFlashType] = useState<'ok' | 'err' | 'info'>('info');
+  const [timeLeft, setTimeLeft] = useState(BOGGLE_DURATION);
 
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const nextPhaseRef = useRef<Phase>('handoff');
-  const gridRef = useRef<HTMLDivElement>(null);
-
-  // Mirror selected in a ref so pointer-up can read the latest value synchronously
   const selectedRef = useRef<number[]>([]);
   const isDragging = useRef(false);
-  const phaseRef = useRef<Phase>('setup');
-  const p1WordsRef = useRef<string[]>([]);
-  const p2WordsRef = useRef<string[]>([]);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const finishedRef = useRef(false);
 
-  // Keep refs in sync
-  phaseRef.current = phase;
-  p1WordsRef.current = p1Words;
-  p2WordsRef.current = p2Words;
+  const updateSelected = (s: number[]) => { selectedRef.current = s; setSelected(s); };
 
-  const updateSelected = (s: number[]) => {
-    selectedRef.current = s;
-    setSelected(s);
-  };
+  // Derive my words from Firebase
+  const myWords = playerId ? wordsFromFirebase(words[playerId]) : [];
+  const myWordsRef = useRef<string[]>([]);
+  myWordsRef.current = myWords;
 
-  const stopTimer = () => {
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
-  };
+  // Timer — driven by timeStart from Firebase
+  useEffect(() => {
+    if (status !== 'playing') return;
+    finishedRef.current = false;
 
-  const startTimer = (next: Phase) => {
-    stopTimer();
-    nextPhaseRef.current = next;
-    let t = TURN_SECONDS;
-    setTimeLeft(t);
-    timerRef.current = setInterval(() => {
-      t--;
-      setTimeLeft(t);
-      if (t <= 0) { stopTimer(); setPhase(nextPhaseRef.current); }
-    }, 1000);
-  };
-
-  useEffect(() => () => stopTimer(), []);
-
-  const handleStart = () => {
-    if (!names[0].trim() || !names[1].trim()) { alert('Enter both player names!'); return; }
-    setGrid(generateGrid());
-    setP1Words([]);
-    setP2Words([]);
-    updateSelected([]);
-    setFlash('');
-    setPhase('p1turn');
-    startTimer('handoff');
-  };
-
-  // Submit using the ref value — safe to call from pointer events
-  const submitWordFromRef = async () => {
-    const sel = selectedRef.current;
-    const currentPhase = phaseRef.current;
-    if (currentPhase !== 'p1turn' && currentPhase !== 'p2turn') return;
-    if (sel.length === 0) return;
-
-    const word = sel.map(i => grid[i]).join('').toLowerCase();
-    updateSelected([]);
-
-    if (word.length < 3) {
-      setFlash('Too short! (min 3 letters)'); setFlashType('err');
-      setTimeout(() => setFlash(''), 1200);
-      return;
-    }
-
-    const words = currentPhase === 'p1turn' ? p1WordsRef.current : p2WordsRef.current;
-    if (words.includes(word)) {
-      setFlash('Already found!'); setFlashType('err');
-      setTimeout(() => setFlash(''), 1200);
-      return;
-    }
-
-    setFlash('Checking…'); setFlashType('info');
-    try {
-      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-      if (res.ok) {
-        const setWords = currentPhase === 'p1turn' ? setP1Words : setP2Words;
-        setWords(prev => [...prev, word]);
-        setFlash(`✓ +${wordScore(word.length)} pts`); setFlashType('ok');
-      } else {
-        setFlash('Not a word!'); setFlashType('err');
+    const tick = () => {
+      const elapsed = Math.floor((Date.now() - timeStart) / 1000);
+      const remaining = Math.max(0, BOGGLE_DURATION - elapsed);
+      setTimeLeft(remaining);
+      if (remaining === 0 && !finishedRef.current) {
+        finishedRef.current = true;
+        void finishGame();
       }
-    } catch {
-      // Network error — accept the word to avoid penalising offline play
-      const setWords = currentPhase === 'p1turn' ? setP1Words : setP2Words;
-      setWords(prev => [...prev, word]);
-      setFlash(`✓ +${wordScore(word.length)} pts`); setFlashType('ok');
-    }
-    setTimeout(() => setFlash(''), 1400);
-  };
+    };
+    tick();
+    const interval = setInterval(tick, 500);
+    return () => clearInterval(interval);
+  }, [status, timeStart, finishGame]);
 
   // ── Pointer drag handlers ──────────────────────────────────────
   const getCellIndex = (clientX: number, clientY: number): number | null => {
@@ -152,7 +80,7 @@ export function BoggleGame() {
   };
 
   const handleGridPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (phaseRef.current !== 'p1turn' && phaseRef.current !== 'p2turn') return;
+    if (status !== 'playing') return;
     e.currentTarget.setPointerCapture(e.pointerId);
     isDragging.current = true;
     const idx = getCellIndex(e.clientX, e.clientY);
@@ -165,7 +93,6 @@ export function BoggleGame() {
     if (idx === null) return;
     const prev = selectedRef.current;
     if (prev.includes(idx)) {
-      // Dragging back onto second-to-last tile = undo last
       if (prev.length >= 2 && prev[prev.length - 2] === idx) {
         updateSelected(prev.slice(0, -1));
       }
@@ -178,7 +105,7 @@ export function BoggleGame() {
   const handleGridPointerUp = () => {
     if (!isDragging.current) return;
     isDragging.current = false;
-    void submitWordFromRef();
+    void submitWordFromSelected();
   };
 
   const handleGridPointerCancel = () => {
@@ -186,82 +113,62 @@ export function BoggleGame() {
     updateSelected([]);
   };
 
-  const handleP2Start = () => {
+  const submitWordFromSelected = async () => {
+    const sel = selectedRef.current;
+    if (status !== 'playing' || sel.length === 0) return;
+
+    const word = sel.map(i => grid[i]).join('').toLowerCase();
     updateSelected([]);
-    setFlash('');
-    setPhase('p2turn');
-    startTimer('results');
+
+    if (word.length < 3) {
+      setFlash('Too short! (min 3 letters)'); setFlashType('err');
+      setTimeout(() => setFlash(''), 1200);
+      return;
+    }
+    if (myWordsRef.current.includes(word)) {
+      setFlash('Already found!'); setFlashType('err');
+      setTimeout(() => setFlash(''), 1200);
+      return;
+    }
+
+    setFlash('Checking…'); setFlashType('info');
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+      if (res.ok) {
+        await submitWord(word);
+        setFlash(`✓ +${wordScore(word.length)} pts`); setFlashType('ok');
+      } else {
+        setFlash('Not a word!'); setFlashType('err');
+      }
+    } catch {
+      // Offline — accept the word
+      await submitWord(word);
+      setFlash(`✓ +${wordScore(word.length)} pts`); setFlashType('ok');
+    }
+    setTimeout(() => setFlash(''), 1400);
   };
-
-  const resetGame = () => {
-    stopTimer();
-    setPhase('setup');
-    setGrid([]);
-    updateSelected([]);
-    setP1Words([]);
-    setP2Words([]);
-    setFlash('');
-  };
-
-  // ── Setup ──────────────────────────────────────────────────────
-  if (phase === 'setup') {
-    return (
-      <div className="boggle-setup">
-        <p className="boggle-setup-desc">
-          Find words on a 4×4 grid — drag across adjacent letters to build a word, release to submit.
-          Each player gets 2 minutes. Shared words don't count!
-        </p>
-        <div className="boggle-setup-players">
-          {[0, 1].map(i => (
-            <div key={i} className="boggle-setup-player">
-              <label className="boggle-setup-label">Player {i + 1}</label>
-              <input
-                className="boggle-setup-input"
-                type="text"
-                placeholder={`Player ${i + 1} name`}
-                value={names[i]}
-                maxLength={18}
-                onChange={e => { const n = [...names]; n[i] = e.target.value; setNames(n); }}
-                onKeyDown={e => e.key === 'Enter' && handleStart()}
-              />
-            </div>
-          ))}
-        </div>
-        <button className="boggle-start-btn" onClick={handleStart}>Start Game!</button>
-        <div className="boggle-scoring-legend">
-          <span>3–4 letters: 1pt</span>
-          <span>5: 2pts</span>
-          <span>6: 3pts</span>
-          <span>7: 5pts</span>
-          <span>8+: 11pts</span>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Handoff ────────────────────────────────────────────────────
-  if (phase === 'handoff') {
-    return (
-      <div className="boggle-handoff">
-        <div className="boggle-handoff-icon">🔄</div>
-        <h3 className="boggle-handoff-title">Time's up, {names[0]}!</h3>
-        <p className="boggle-handoff-msg">
-          Pass the device to <strong>{names[1]}</strong>.
-        </p>
-        <p className="boggle-handoff-hint">Don't peek at the words list!</p>
-        <button className="boggle-next-btn" onClick={handleP2Start}>
-          I'm {names[1]} — Ready!
-        </button>
-      </div>
-    );
-  }
 
   // ── Results ────────────────────────────────────────────────────
-  if (phase === 'results') {
-    const shared = new Set(p1Words.filter(w => p2Words.includes(w)));
-    const p1Score = totalScore(p1Words, shared);
-    const p2Score = totalScore(p2Words, shared);
-    const winner = p1Score > p2Score ? names[0] : p2Score > p1Score ? names[1] : null;
+  if (status === 'finished') {
+    const playerWordLists = players.map(p => ({
+      player: p,
+      wordList: wordsFromFirebase(words[p.id]),
+      color: BOGGLE_COLORS[players.indexOf(p) % BOGGLE_COLORS.length],
+    }));
+
+    // Words found by more than one player are shared
+    const wordCounts: Record<string, number> = {};
+    playerWordLists.forEach(({ wordList }) =>
+      wordList.forEach(w => { wordCounts[w] = (wordCounts[w] || 0) + 1; })
+    );
+    const shared = new Set(Object.entries(wordCounts).filter(([, c]) => c > 1).map(([w]) => w));
+
+    const scored = playerWordLists
+      .map(p => ({ ...p, score: totalScore(p.wordList, shared) }))
+      .sort((a, b) => b.score - a.score);
+
+    const winner = scored[0].score > scored[1].score ? scored[0].player.name : null;
+    const isHost = players[0]?.id === playerId;
 
     return (
       <div className="boggle-results">
@@ -271,18 +178,32 @@ export function BoggleGame() {
             {winner ? `${winner} wins!` : "It's a tie!"}
           </span>
         </div>
-        <div className="boggle-results-cols">
-          {[
-            { name: names[0], words: p1Words, score: p1Score },
-            { name: names[1], words: p2Words, score: p2Score },
-          ].map(({ name, words, score }) => (
-            <div key={name} className="boggle-results-col">
+
+        {/* Leaderboard */}
+        <div className="boggle-leaderboard">
+          {scored.map((p, rank) => (
+            <div key={p.player.id} className="boggle-lb-row" style={{ borderColor: p.color }}>
+              <span className="boggle-lb-rank">#{rank + 1}</span>
+              <span className="boggle-lb-avatar" style={{ background: p.color }}>
+                {p.player.name.charAt(0).toUpperCase()}
+              </span>
+              <span className="boggle-lb-name">{p.player.name}</span>
+              <span className="boggle-lb-score" style={{ color: p.color }}>{p.score} pts</span>
+              <span className="boggle-lb-count">{p.wordList.filter(w => !shared.has(w)).length} words</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Per-player word lists */}
+        <div className={`boggle-results-cols cols-${players.length}`}>
+          {scored.map(({ player, wordList, color }) => (
+            <div key={player.id} className="boggle-results-col">
               <div className="boggle-results-col-head">
-                <span className="boggle-results-name">{name}</span>
-                <span className="boggle-results-score">{score} pts</span>
+                <span className="boggle-results-name" style={{ color }}>{player.name}</span>
+                <span className="boggle-results-score">{totalScore(wordList, shared)} pts</span>
               </div>
               <ul className="boggle-word-list">
-                {words.map(w => (
+                {wordList.map(w => (
                   <li key={w} className={`boggle-word-item${shared.has(w) ? ' shared' : ''}`}>
                     <span className="boggle-word-text">{w}</span>
                     {shared.has(w)
@@ -291,42 +212,64 @@ export function BoggleGame() {
                     }
                   </li>
                 ))}
-                {words.length === 0 && <li className="boggle-word-empty">No words found</li>}
+                {wordList.length === 0 && <li className="boggle-word-empty">No words found</li>}
               </ul>
             </div>
           ))}
         </div>
+
         {shared.size > 0 && (
-          <p className="boggle-shared-note">Shared words don't count for either player.</p>
+          <p className="boggle-shared-note">Shared words (found by multiple players) don't count.</p>
         )}
+
         <div className="boggle-results-actions">
-          <button className="boggle-again-btn" onClick={handleStart}>Play Again</button>
-          <button className="boggle-reset-btn" onClick={resetGame}>Change Names</button>
+          {isHost
+            ? <button className="boggle-again-btn" onClick={playAgain}>Play Again</button>
+            : <p className="waiting-hint">Waiting for host to start a new round...</p>
+          }
+          <button className="boggle-reset-btn" onClick={leaveGame}>Leave Game</button>
         </div>
       </div>
     );
   }
 
-  // ── Game Turn (p1turn / p2turn) ────────────────────────────────
-  const isP1 = phase === 'p1turn';
-  const currentWords = isP1 ? p1Words : p2Words;
-  const playerName = names[isP1 ? 0 : 1];
+  // ── Playing ────────────────────────────────────────────────────
   const currentWord = selected.map(i => grid[i]).join('');
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;
   const timerUrgent = timeLeft <= 30;
+  const myScore = myWords.reduce((s, w) => s + wordScore(w.length), 0);
 
   return (
     <div className="boggle-game">
-      {/* Header bar */}
+      {/* Header */}
       <div className="boggle-header">
-        <span className="boggle-player-label">{playerName}'s turn</span>
+        <span className="boggle-player-label">
+          {myWords.length} word{myWords.length !== 1 ? 's' : ''} · {myScore} pts
+        </span>
         <span className={`boggle-timer${timerUrgent ? ' urgent' : ''}`}>
           {mins}:{secs.toString().padStart(2, '0')}
         </span>
       </div>
 
-      {/* 4×4 grid — drag to select, release to submit */}
+      {/* Other players' live word counts */}
+      <div className="boggle-rivals">
+        {players.filter(p => p.id !== playerId).map((p) => {
+          const count = wordsFromFirebase(words[p.id]).length;
+          const color = BOGGLE_COLORS[(players.indexOf(p)) % BOGGLE_COLORS.length];
+          return (
+            <div key={p.id} className="boggle-rival-chip" style={{ borderColor: color }}>
+              <span className="boggle-rival-avatar" style={{ background: color }}>
+                {p.name.charAt(0).toUpperCase()}
+              </span>
+              <span className="boggle-rival-name">{p.name}</span>
+              <span className="boggle-rival-count" style={{ color }}>{count}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* 4×4 grid */}
       <div
         ref={gridRef}
         className="boggle-grid"
@@ -345,9 +288,7 @@ export function BoggleGame() {
               className={`boggle-cell${isSelected ? ' selected' : ''}${isLast ? ' last' : ''}`}
             >
               <span className="boggle-letter">{letter === 'Q' ? 'Qu' : letter}</span>
-              {isSelected && (
-                <span className="boggle-cell-order">{selIdx + 1}</span>
-              )}
+              {isSelected && <span className="boggle-cell-order">{selIdx + 1}</span>}
             </div>
           );
         })}
@@ -361,17 +302,16 @@ export function BoggleGame() {
         }
       </div>
 
-      {/* Flash feedback */}
+      {/* Flash */}
       {flash && <div className={`boggle-flash boggle-flash-${flashType}`}>{flash}</div>}
 
-      {/* Found words */}
+      {/* My found words */}
       <div className="boggle-found">
         <div className="boggle-found-header">
-          {currentWords.length} word{currentWords.length !== 1 ? 's' : ''} ·{' '}
-          {currentWords.reduce((s, w) => s + wordScore(w.length), 0)} pts
+          My words · {myWords.length} found · {myScore} pts
         </div>
         <div className="boggle-found-chips">
-          {currentWords.map(w => (
+          {myWords.map(w => (
             <span key={w} className="boggle-found-chip">
               {w}
               <span className="boggle-chip-pts">+{wordScore(w.length)}</span>

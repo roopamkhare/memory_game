@@ -7,7 +7,9 @@ import { Scoreboard } from './components/Scoreboard';
 import { SnakeLobby } from './snake/SnakeLobby';
 import { SnakeBoard } from './snake/SnakeBoard';
 import { useSnakeStore } from './snake/snakeStore';
+import { BoggleLobby } from './boggle/BoggleLobby';
 import { BoggleGame } from './boggle/BoggleGame';
+import { useBoggleStore } from './boggle/boggleStore';
 import { TicTacToeGame } from './tictactoe/TicTacToeGame';
 import './App.css';
 
@@ -55,13 +57,16 @@ function SnakeGame({ onBack }: { onBack: () => void }) {
 }
 
 function BoggleScreen({ onBack }: { onBack: () => void }) {
+  const { status, leaveGame } = useBoggleStore();
+  const handleBack = () => { leaveGame(); onBack(); };
+
   return (
     <>
       <div className="game-topbar">
-        <button className="back-btn" onClick={onBack}>← Games</button>
+        <button className="back-btn" onClick={handleBack}>← Games</button>
         <span className="game-topbar-title">Boggle</span>
       </div>
-      <BoggleGame />
+      {status === 'waiting' ? <BoggleLobby /> : <BoggleGame />}
     </>
   );
 }
